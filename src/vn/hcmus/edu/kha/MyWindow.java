@@ -130,6 +130,24 @@ class MyWindow extends JFrame {
         button_panel.setLayout(new FlowLayout());
         JButton delete_btn = new JButton("Delete");
         JButton add_btn = new JButton("Add");
+        add_btn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // add new slang here
+
+                String input = JOptionPane.showInputDialog(null, "Add slang");
+                if (!input.equals(null)){    //OK option, cancel option return null
+                    if (slang.containsKey(input)){
+                        int op =JOptionPane.showConfirmDialog(null,"New slang found" +
+                                " in dictionary\nDo you want to add new definition to " + input,"Slang confirmation",JOptionPane.OK_CANCEL_OPTION);
+                        if (op == JOptionPane.OK_OPTION){
+                            String newDef = JOptionPane.showInputDialog(null, "Add new definition to "+ input);
+                            addSlangDefinition(input,newDef);
+                        }
+                    }
+                }
+            }
+        });
         button_panel.add(add_btn);
         button_panel.add(delete_btn);
         gbc.gridx=0;
@@ -224,14 +242,16 @@ class MyWindow extends JFrame {
      * Also set hashmap of definition and its slang
      * @return Map<String, ArrayList<String>>
      */
-    private Map<String, ArrayList<String>> readSlang(){
+    private Map<String, ArrayList<String>> readSlang() {
         Map<String, ArrayList<String>> result = new HashMap<>();
         try (BufferedReader br = new BufferedReader(new FileReader("slang.txt"))) {
             String line;
 
             while ((line = br.readLine()) != null) {
                 // skip header
-                if (line.equals("Slag`Meaning")){continue;}
+                if (line.equals("Slag`Meaning")) {
+                    continue;
+                }
                 if (line.contains("`")) {
                     ArrayList<String> def = new ArrayList<>();
                     String[] token = line.split("(`)");
@@ -257,5 +277,19 @@ class MyWindow extends JFrame {
             e.printStackTrace();
         }
         return result;
+    }
+
+    /**
+     * Add new definition to a slang word, cancel add new definition if duplicate def
+     * @param slangw String
+     * @param slangd String
+     */
+    private void addSlangDefinition(String slangw,String slangd){
+        ArrayList<String> definitions = slang.get(slangw);
+        if (definitions.contains(slangd)){
+            return;
+        }
+        slang.remove(slangw);
+        slang.put(slangw,definitions);
     }
 }
