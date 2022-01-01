@@ -204,7 +204,7 @@ class MyWindow extends JFrame {
                     try {
                         PrintWriter writer = new PrintWriter(new FileOutputStream(new File("history.txt"),
                                 true));
-                        writer.append(formatter.format(date)+" : " + search_input.getText()+"\n");
+                        writer.append(formatter.format(date)+" : " + search_input.getText()+" (slang)\n");
                         writer.close();
                     } catch (FileNotFoundException ex) {
                         ex.printStackTrace();
@@ -223,6 +223,19 @@ class MyWindow extends JFrame {
                                 listModel.addElement(key);
                             }
                         }
+                    }
+
+                    // write to history file
+                    SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+                    Date date = new Date();
+                    try {
+                        PrintWriter writer = new PrintWriter(new FileOutputStream(new File("history.txt"),
+                                true));
+                        writer.append(formatter.format(date)+" : " + search_input.getText()+" (definition)\n");
+                        writer.close();
+                    } catch (FileNotFoundException ex) {
+                        ex.printStackTrace();
+                        //done
                     }
                 }
             }
