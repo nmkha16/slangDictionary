@@ -130,13 +130,45 @@ class MyWindow extends JFrame {
         button_panel.setLayout(new FlowLayout());
         JButton delete_btn = new JButton("Delete");
         JButton add_btn = new JButton("Add");
+        JButton editSlang_btn = new JButton("Edit");
+        // Action event for edit button
+        editSlang_btn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    String input = JOptionPane.showInputDialog(null, "Edit slang",
+                            slangList.getSelectedValue().toString());
+                    if (!input.equals(null)) {    //OK/Cancel option, cancel option return null
+                        if (slang.containsKey(input)) {
+                            int op = JOptionPane.showConfirmDialog(null, "New edited slang duplicates " +
+                                            "'" +input +"'"+
+                                            " in dictionary!\nDo you want to overwrite?\nWarning: Doing " +
+                                            "overwrite will delete all former definitions and carry" +
+                                            " current edited slang's definitions over!!!", "Duplicate warning",
+                                    JOptionPane.OK_CANCEL_OPTION);
+                            if (op == JOptionPane.OK_OPTION) {
+                                slang.put(input, slang.get(slangList.getSelectedValue().toString()));
+                                slang.remove(slangList.getSelectedValue().toString());
+                                refreshSlangList();
+                            }
+                        }
+                        else{
+                            slang.put(input, slang.get(slangList.getSelectedValue().toString()));
+                            slang.remove(slangList.getSelectedValue().toString());
+                            refreshSlangList();
+                        }
+                    }
+                }catch (NullPointerException nullPointerException){}
+            }
+        });
+        // action event for add button
         add_btn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 // add new slang here
 
                 String input = JOptionPane.showInputDialog(null, "Add slang");
-                if (!input.equals(null)){    //OK option, cancel option return null
+                if (!input.equals(null)){    //OK/Cancel option, cancel option return null
                     if (slang.containsKey(input)){
                         int op =JOptionPane.showConfirmDialog(null,"New slang found" +
                                 " in dictionary\nDo you want to add new definition to " + input,"Slang confirmation",JOptionPane.OK_CANCEL_OPTION);
@@ -149,6 +181,7 @@ class MyWindow extends JFrame {
             }
         });
         button_panel.add(add_btn);
+        button_panel.add(editSlang_btn);
         button_panel.add(delete_btn);
         gbc.gridx=0;
         left_pn.add(Box.createRigidArea(new Dimension(10, 0)),gbc);
@@ -185,8 +218,7 @@ class MyWindow extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (search_input.getText().equals("")){
-                    listModel.clear();
-                    listModel.addAll(slang.keySet());
+                    refreshSlangList();
                     return;
                 }
                 if (search_criteria.getSelectedItem().toString().equals("Search by slang")) {
@@ -241,13 +273,27 @@ class MyWindow extends JFrame {
             }
         });
         bottom_pn.add(search_btn);
-        JButton edit_btn = new JButton("Edit");
-        bottom_pn.add(edit_btn);
+        JButton editDef_btn = new JButton("Edit");
+        editDef_btn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+            }
+        });
+        bottom_pn.add(editDef_btn);
         add(bottom_pn,BorderLayout.SOUTH);
 
 
         setLocationRelativeTo(null);
         pack();
+    }
+
+    /**
+     * refresh JList
+     */
+    private void refreshSlangList(){
+        listModel.clear();
+        listModel.addAll(slang.keySet());
     }
 
     /**
@@ -305,4 +351,5 @@ class MyWindow extends JFrame {
         slang.remove(slangw);
         slang.put(slangw,definitions);
     }
+
 }
