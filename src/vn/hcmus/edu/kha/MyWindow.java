@@ -131,6 +131,23 @@ class MyWindow extends JFrame {
         JButton delete_btn = new JButton("Delete");
         JButton add_btn = new JButton("Add");
         JButton editSlang_btn = new JButton("Edit");
+        //Action event for delete button
+        delete_btn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try{
+                    String slangw = slangList.getSelectedValue().toString();
+                    int op = JOptionPane.showConfirmDialog(null,"Confirm to delete '"
+                            +slangw+"'","Delete slang",JOptionPane.OK_CANCEL_OPTION);
+                    if (op == JOptionPane.OK_OPTION){
+                        slang.remove(slangw);
+                        JOptionPane.showMessageDialog(null,"Deleted '"
+                                +slangw+"'");
+                        refreshSlangList();
+                    }
+                }catch(NullPointerException nullPointerException){}
+            }
+        });
         // Action event for edit button
         editSlang_btn.addActionListener(new ActionListener() {
             @Override
@@ -142,8 +159,8 @@ class MyWindow extends JFrame {
                         if (slang.containsKey(input)) {
                             int op = JOptionPane.showConfirmDialog(null, "New edited slang duplicates " +
                                             "'" +input +"'"+
-                                            " in dictionary!\nDo you want to overwrite?\nWarning: Doing " +
-                                            "overwrite will delete all former definitions and carry" +
+                                            " in dictionary!\nDo you want to overwrite?\nWarning: Perform " +
+                                            "overwriting will delete all former definitions and carry" +
                                             " current edited slang's definitions over!!!", "Duplicate warning",
                                     JOptionPane.OK_CANCEL_OPTION);
                             if (op == JOptionPane.OK_OPTION) {
