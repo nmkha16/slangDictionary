@@ -24,7 +24,7 @@ class MyWindow extends JFrame {
     private JTextField search_input;
     private Map<String, ArrayList<String>> slang;
 
-    private String[] function = new String[]{"Tìm kiếm","Lịch sử tìm kiếm"};
+    private String[] function = new String[]{"Tìm kiếm","Lịch sử tìm kiếm","Khôi phục gốc","Random slang"};
     public MyWindow() {
         super("Slang Dictionary");
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -36,7 +36,7 @@ class MyWindow extends JFrame {
             }
         });
         // read HashMap
-        slang = readSlang();
+        slang = readSlang("slang.txt");
 
 
         // set property of window
@@ -85,12 +85,56 @@ class MyWindow extends JFrame {
                             new Object[] {textArea},
                             null);
                 }
+                else if(event.equals("Khôi phục gốc")){
+                    slang = readSlang("slang.txt.bak");
+                    refreshSlangList();
+                }
+                else if (event.equals("Random slang")) {
+                    Random random = new Random();
+                    int rand = random.nextInt(slang.size());
+                    String slangw = "";
+                    ArrayList<String> slangd = null;
+                    // now traverse through hash map
+                    int i = 0;
+                    for (Map.Entry<String, ArrayList<String>> entry : slang.entrySet()) {
+                        if (i == rand) {
+                            slangw = entry.getKey();
+                            slangd = entry.getValue();
+                        }
+                        i++;
+                    }
+                    // build definition string
+                    String output ="";
+                    for (i = 0; i < slangd.size(); i++) {
+                        output += " - " + slangd.get(i) + "\n";
+                    }
+                    // now show JOptionPane
+                    JOptionPane.showMessageDialog(null,"Today slang is: "+slangw+"\nDefinition:\n" +
+                            output);
+                }
                 functionCB.setSelectedIndex(0);
             }
         });
+
         top_pn.add(Box.createRigidArea(new Dimension(25, 0)));
         functionCB.setPreferredSize(new Dimension(300,20));
         top_pn.add(functionCB,gbc);
+        gbc.gridx++;
+        JButton save_btn = new JButton("Save");
+        save_btn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    saveSlang("slang.txt");
+                } catch (FileNotFoundException ex) {
+                    ex.printStackTrace();
+                } catch (UnsupportedEncodingException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
+        top_pn.add(save_btn);
+        gbc.gridx--;
         add(top_pn,BorderLayout.NORTH);
 
         // create left panel for list of word
@@ -145,6 +189,7 @@ class MyWindow extends JFrame {
                                 +slangw+"'");
                         refreshSlangList();
                     }
+                    JOptionPane.showMessageDialog(null,"Successfully Edited.","Alert",JOptionPane.WARNING_MESSAGE);
                 }catch(NullPointerException nullPointerException){}
             }
         });
@@ -294,7 +339,19 @@ class MyWindow extends JFrame {
         editDef_btn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                // allow performing definition edit here
+                String slangw= slangList.getSelectedValue().toString();
+                ArrayList<String> slangd = new ArrayList<>();
 
+                // each definition is split by a \n
+                String definitions = jTextArea.getText();
+
+                for (String def : definitions.split("\n")){
+                    slangd.add(def);
+                }
+                // now put them to hash map
+                slang.remove(slangw);
+                slang.put(slangw,slangd);
             }
         });
         bottom_pn.add(editDef_btn);
@@ -318,9 +375,9 @@ class MyWindow extends JFrame {
      * Also set hashmap of definition and its slang
      * @return Map<String, ArrayList<String>>
      */
-    private Map<String, ArrayList<String>> readSlang() {
+    private Map<String, ArrayList<String>> readSlang(String filename) {
         Map<String, ArrayList<String>> result = new HashMap<>();
-        try (BufferedReader br = new BufferedReader(new FileReader("slang.txt"))) {
+        try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
             String line;
 
             while ((line = br.readLine()) != null) {
@@ -353,6 +410,37 @@ class MyWindow extends JFrame {
             e.printStackTrace();
         }
         return result;
+    }
+
+    /**
+     * save current slang to text file
+     * @param filename String
+     */
+    private void saveSlang(String filename) throws FileNotFoundException, UnsupportedEncodingException {
+        PrintWriter writer = new PrintWriter(filename, "UTF-8");
+        writer.write("Slag`Meaning\n"); // header for text file
+        for (Map.Entry<String, ArrayList<String>> entry : slang.entrySet()) {
+            String key = entry.getKey();
+            ArrayList<String> value = entry.getValue();
+
+            // build string for definition
+            String output="";
+            if (value.size()<=1){
+                for (String s : value){
+                    output+= s;
+                }
+            }
+            else{
+                for (String s: value) {
+                    output += s + "|";
+                }
+            }
+
+            writer.write(key+"`"+output+"\n");
+
+        }
+        writer.close();
+        JOptionPane.showMessageDialog(null,"Successfully Saved.","Alert",JOptionPane.WARNING_MESSAGE);
     }
 
     /**
