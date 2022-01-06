@@ -92,6 +92,7 @@ class MyWindow extends JFrame {
                         slang = readSlang("slang.txt.bak");
                         JOptionPane.showMessageDialog(null,"Successfully Restored."
                                 ,"Alert",JOptionPane.WARNING_MESSAGE);
+                        saveSlang("slang.txt");
                         refreshSlangList();
                     }catch (Exception E){
                         JOptionPane.showMessageDialog(null,"Failed to Restore."
@@ -125,7 +126,9 @@ class MyWindow extends JFrame {
                 else if(event.equals("Slang Quiz")) {
                     slangQuiz();
                 }
-                else if(event.equals("Definition Quiz")){}
+                else if(event.equals("Definition Quiz")){
+                    definitionQuiz();
+                }
                 functionCB.setSelectedIndex(0);
             }
         });
@@ -133,22 +136,6 @@ class MyWindow extends JFrame {
         top_pn.add(Box.createRigidArea(new Dimension(25, 0)));
         functionCB.setPreferredSize(new Dimension(300,20));
         top_pn.add(functionCB,gbc);
-        gbc.gridx++;
-        JButton save_btn = new JButton("Save");
-        save_btn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                try {
-                    saveSlang("slang.txt");
-                } catch (FileNotFoundException ex) {
-                    ex.printStackTrace();
-                } catch (UnsupportedEncodingException ex) {
-                    ex.printStackTrace();
-                }
-            }
-        });
-        top_pn.add(save_btn);
-        gbc.gridx--;
         add(top_pn,BorderLayout.NORTH);
 
         // create left panel for list of word
@@ -199,12 +186,13 @@ class MyWindow extends JFrame {
                             +slangw+"'","Delete slang",JOptionPane.OK_CANCEL_OPTION);
                     if (op == JOptionPane.OK_OPTION){
                         slang.remove(slangw);
+                        saveSlang("slang.txt");
                         JOptionPane.showMessageDialog(null,"Deleted '"
                                 +slangw+"'");
                         refreshSlangList();
                     }
-                    JOptionPane.showMessageDialog(null,"Successfully Edited.","Alert",JOptionPane.WARNING_MESSAGE);
                 }catch(NullPointerException nullPointerException){}
+                catch(Exception E){}
             }
         });
         // Action event for edit button
@@ -225,16 +213,19 @@ class MyWindow extends JFrame {
                             if (op == JOptionPane.OK_OPTION) {
                                 slang.put(input, slang.get(slangList.getSelectedValue().toString()));
                                 slang.remove(slangList.getSelectedValue().toString());
+                                saveSlang("slang.txt");
                                 refreshSlangList();
                             }
                         }
                         else{
                             slang.put(input, slang.get(slangList.getSelectedValue().toString()));
                             slang.remove(slangList.getSelectedValue().toString());
+                            saveSlang("slang.txt");
                             refreshSlangList();
                         }
                     }
                 }catch (NullPointerException nullPointerException){}
+                catch(Exception E){}
             }
         });
         // action event for add button
@@ -251,6 +242,9 @@ class MyWindow extends JFrame {
                         if (op == JOptionPane.OK_OPTION){
                             String newDef = JOptionPane.showInputDialog(null, "Add new definition to "+ input);
                             addSlangDefinition(input,newDef);
+                            try {
+                                saveSlang("slang.txt");
+                            }catch (Exception E){}
                         }
                     }
                 }
@@ -349,7 +343,7 @@ class MyWindow extends JFrame {
             }
         });
         bottom_pn.add(search_btn);
-        JButton editDef_btn = new JButton("Edit");
+        JButton editDef_btn = new JButton("Edit Definition");
         editDef_btn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -454,7 +448,7 @@ class MyWindow extends JFrame {
 
         }
         writer.close();
-        JOptionPane.showMessageDialog(null,"Successfully Saved.","Alert",JOptionPane.WARNING_MESSAGE);
+        //JOptionPane.showMessageDialog(null,"Successfully Saved.","Alert",JOptionPane.WARNING_MESSAGE);
     }
 
     /**
@@ -504,13 +498,58 @@ class MyWindow extends JFrame {
             }
             i++;
         }
-        int n = JOptionPane.showOptionDialog(null, "What does " + quest + " mean"
+        int n = JOptionPane.showOptionDialog(null, "What does " + quest + " mean?"
                 , "Slang Quiz",0,JOptionPane.QUESTION_MESSAGE, null,def_ans,def_ans[0]);
         if (n!= -1) {
             if (def_ans[n].equals(ans)) {
                 JOptionPane.showMessageDialog(null, "Correct Answer!!!");
             } else {
-                JOptionPane.showMessageDialog(null,"Sorry, correct answer for " + quest
+                JOptionPane.showMessageDialog(null,"Wrong, correct answer for " + quest
+                        + " is\n - " + ans,"Failed",0);
+            }
+        }
+    }
+
+    /**
+     * Definition Quiz function
+     */
+    private void definitionQuiz(){
+        Random random = new Random();
+        int rand = random.nextInt(slang.size());
+        String quest= null;
+        String ans= null;
+        // now traverse through hash map
+        int i,k;
+        i = k = 0;
+        // create definition for 3 wrong answer
+        String[] def_ans = new String[4];
+        Integer[] def_ans_index = new Integer[]{random.nextInt(slang.size()),random.nextInt(slang.size()),
+                random.nextInt(slang.size()),random.nextInt(slang.size())};
+        Arrays.sort(def_ans_index);
+        int correctChoiceIndex = random.nextInt(4);
+        for (Map.Entry<String, ArrayList<String>> entry : slang.entrySet()) {
+            if (i == rand) {
+                quest = entry.getValue().get(random.nextInt(entry.getValue().size()));
+                ans = entry.getKey();
+                def_ans[correctChoiceIndex] = ans;
+            }
+            if (k < 4 && def_ans_index[k] == i){
+                if (k == correctChoiceIndex){
+                    k++;
+                    continue;
+                }
+                def_ans[k] = entry.getKey();
+                k++;
+            }
+            i++;
+        }
+        int n = JOptionPane.showOptionDialog(null, "Which answer below means " + quest + "?"
+                , "Definition Quiz",0,JOptionPane.QUESTION_MESSAGE, null,def_ans,def_ans[0]);
+        if (n!= -1) {
+            if (def_ans[n].equals(ans)) {
+                JOptionPane.showMessageDialog(null, "Correct Answer!!!");
+            } else {
+                JOptionPane.showMessageDialog(null,"Wrong, correct answer for " + quest
                         + " is\n - " + ans,"Failed",0);
             }
         }
