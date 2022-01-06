@@ -24,7 +24,8 @@ class MyWindow extends JFrame {
     private JTextField search_input;
     private Map<String, ArrayList<String>> slang;
 
-    private String[] function = new String[]{"Tìm kiếm","Lịch sử tìm kiếm","Khôi phục gốc","Random slang"};
+    private String[] function = new String[]{"Tìm kiếm","Lịch sử tìm kiếm","Khôi phục gốc","Random slang",
+    "Slang Quiz","Definition Quiz"};
     public MyWindow() {
         super("Slang Dictionary");
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -36,8 +37,9 @@ class MyWindow extends JFrame {
             }
         });
         // read HashMap
-        slang = readSlang("slang.txt");
-
+        try {
+            slang = readSlang("slang.txt");
+        }catch (Exception E){slang = new HashMap<>();}
 
         // set property of window
         setPreferredSize(new Dimension(720, 480));
@@ -86,8 +88,16 @@ class MyWindow extends JFrame {
                             null);
                 }
                 else if(event.equals("Khôi phục gốc")){
-                    slang = readSlang("slang.txt.bak");
-                    refreshSlangList();
+                    try {
+                        slang = readSlang("slang.txt.bak");
+                        JOptionPane.showMessageDialog(null,"Successfully Restored."
+                                ,"Alert",JOptionPane.WARNING_MESSAGE);
+                        refreshSlangList();
+                    }catch (Exception E){
+                        JOptionPane.showMessageDialog(null,"Failed to Restore."
+                                ,"Alert",JOptionPane.WARNING_MESSAGE);
+                    }
+
                 }
                 else if (event.equals("Random slang")) {
                     Random random = new Random();
@@ -112,6 +122,10 @@ class MyWindow extends JFrame {
                     JOptionPane.showMessageDialog(null,"Today slang is: "+slangw+"\nDefinition:\n" +
                             output);
                 }
+                else if(event.equals("Slang Quiz")) {
+                    slangQuiz();
+                }
+                else if(event.equals("Definition Quiz")){}
                 functionCB.setSelectedIndex(0);
             }
         });
@@ -375,7 +389,7 @@ class MyWindow extends JFrame {
      * Also set hashmap of definition and its slang
      * @return Map<String, ArrayList<String>>
      */
-    private Map<String, ArrayList<String>> readSlang(String filename) {
+    private Map<String, ArrayList<String>> readSlang(String filename) throws IOException {
         Map<String, ArrayList<String>> result = new HashMap<>();
         try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
             String line;
@@ -404,12 +418,8 @@ class MyWindow extends JFrame {
                     }
                 }
             }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+            return result;
         }
-        return result;
     }
 
     /**
@@ -432,7 +442,11 @@ class MyWindow extends JFrame {
             }
             else{
                 for (String s: value) {
-                    output += s + "|";
+                    if (s.equals(value.get(value.size()-1))) {
+                        output += s;
+                        break;
+                    }
+                    output += s + "| ";
                 }
             }
 
@@ -457,4 +471,48 @@ class MyWindow extends JFrame {
         slang.put(slangw,definitions);
     }
 
+    /**
+     * slang quiz function
+     */
+    private void slangQuiz(){
+        Random random = new Random();
+        int rand = random.nextInt(slang.size());
+        String quest= null;
+        String ans= null;
+        // now traverse through hash map
+        int i,k;
+        i = k = 0;
+        // create definition for 3 wrong answer
+        String[] def_ans = new String[4];
+        Integer[] def_ans_index = new Integer[]{random.nextInt(slang.size()),random.nextInt(slang.size()),
+                random.nextInt(slang.size()),random.nextInt(slang.size())};
+        Arrays.sort(def_ans_index);
+        int correctChoiceIndex = random.nextInt(4);
+        for (Map.Entry<String, ArrayList<String>> entry : slang.entrySet()) {
+            if (i == rand) {
+                quest = entry.getKey();
+                ans = entry.getValue().get(random.nextInt(entry.getValue().size()));
+                def_ans[correctChoiceIndex] = ans;
+            }
+            if (k < 4 && def_ans_index[k] == i){
+                if (k == correctChoiceIndex){
+                    k++;
+                    continue;
+                }
+                def_ans[k] = entry.getValue().get(random.nextInt(entry.getValue().size()));
+                k++;
+            }
+            i++;
+        }
+        int n = JOptionPane.showOptionDialog(null, "What does " + quest + " mean"
+                , "Slang Quiz",0,JOptionPane.QUESTION_MESSAGE, null,def_ans,def_ans[0]);
+        if (n!= -1) {
+            if (def_ans[n].equals(ans)) {
+                JOptionPane.showMessageDialog(null, "Correct Answer!!!");
+            } else {
+                JOptionPane.showMessageDialog(null,"Sorry, correct answer for " + quest
+                        + " is\n - " + ans,"Failed",0);
+            }
+        }
+    }
 }
