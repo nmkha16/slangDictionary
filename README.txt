@@ -26,4 +26,4 @@ người dùng chọn. - 10
 Tiến độ hoành thành: 100%
 
 Link github: https://github.com/nmkha16/slangDictionary.git
-Link youtube: https://youtu.be/TNJZFojpBx0
+Link youtube: https://youtu.be/mOOd6xpLfj8
