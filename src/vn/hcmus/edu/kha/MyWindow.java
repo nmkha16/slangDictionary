@@ -390,6 +390,7 @@ class MyWindow extends JFrame {
      */
     private void refreshSlangList(){
         listModel.clear();
+        jTextArea.setText("");
         listModel.addAll(slang.keySet());
     }
 
@@ -476,6 +477,7 @@ class MyWindow extends JFrame {
         if (definitions.contains(slangd)){
             return;
         }
+        definitions.add(slangd);
         slang.remove(slangw);
         slang.put(slangw,definitions);
     }
