@@ -23,6 +23,7 @@ class MyWindow extends JFrame {
     private JTextArea jTextArea;
     private JTextField search_input;
     private Map<String, ArrayList<String>> slang;
+    //private Map<String, ArrayList<String>> slang = new HashMap<String,ArrayList<String>>;
 
     private String[] function = new String[]{"Tìm kiếm","Lịch sử tìm kiếm","Khôi phục gốc","Random slang",
     "Slang Quiz","Definition Quiz"};
@@ -44,6 +45,7 @@ class MyWindow extends JFrame {
         // set property of window
         setPreferredSize(new Dimension(720, 480));
         setMinimumSize(new Dimension(720,480));
+        setResizable(false);
         setLayout(new BorderLayout());
         // set gridbaglayout
         GridBagConstraints gbc = new GridBagConstraints();
@@ -70,22 +72,22 @@ class MyWindow extends JFrame {
                         if (input.hasNext()) {
                             textArea.append(input.next());
                         }
-                    } catch (FileNotFoundException ex) {
-                        ex.printStackTrace();
-                    }
-                    textArea.setColumns(30);
-                    textArea.setRows(10);
-                    textArea.setLineWrap(true);
-                    textArea.setWrapStyleWord(true);
-                    JPanel panel = new JPanel();  // Create and modify this panel
-                    JOptionPane.showOptionDialog(null,
-                            panel,
-                            "Lịch sử",
-                            JOptionPane.DEFAULT_OPTION,
-                            JOptionPane.PLAIN_MESSAGE,
-                            null,
-                            new Object[] {textArea},
-                            null);
+                        input.close();
+                        textArea.setColumns(30);
+                        textArea.setRows(10);
+                        textArea.setLineWrap(true);
+                        textArea.setWrapStyleWord(true);
+                        JPanel panel = new JPanel();  // Create and modify this panel
+                        JOptionPane.showOptionDialog(null,
+                                panel,
+                                "Lịch sử",
+                                JOptionPane.DEFAULT_OPTION,
+                                JOptionPane.PLAIN_MESSAGE,
+                                null,
+                                new Object[] {textArea},
+                                null);
+                    } catch (FileNotFoundException ex) {}
+
                 }
                 else if(event.equals("Khôi phục gốc")){
                     try {
@@ -98,7 +100,6 @@ class MyWindow extends JFrame {
                         JOptionPane.showMessageDialog(null,"Failed to Restore."
                                 ,"Alert",JOptionPane.WARNING_MESSAGE);
                     }
-
                 }
                 else if (event.equals("Random slang")) {
                     Random random = new Random();
@@ -247,6 +248,12 @@ class MyWindow extends JFrame {
                             }catch (Exception E){}
                         }
                     }
+                    else{
+                        slang.put(input,null);
+                        try {
+                            saveSlang("slang.txt");
+                        }catch (Exception E){}
+                    }
                 }
             }
         });
@@ -289,6 +296,7 @@ class MyWindow extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 if (search_input.getText().equals("")){
                     refreshSlangList();
+                    jTextArea.setText("");
                     return;
                 }
                 if (search_criteria.getSelectedItem().toString().equals("Search by slang")) {
@@ -313,12 +321,16 @@ class MyWindow extends JFrame {
                         //done
                     }
                 }
-                else{
+                else{   // search by definition
                     listModel.clear();
                     Pattern pattern = Pattern.compile(Pattern.quote(search_input.getText()), Pattern.CASE_INSENSITIVE);
                     for (Map.Entry<String, ArrayList<String>> entry : slang.entrySet()) {
                         String key = entry.getKey();
                         ArrayList<String> value = entry.getValue();
+                        if (value == null){
+                            listModel.addElement(key);
+                            continue;
+                        }
                         for (String str : value) {
                             Matcher matcher = pattern.matcher(str);
                             if (matcher.find()) {
@@ -360,6 +372,9 @@ class MyWindow extends JFrame {
                 // now put them to hash map
                 slang.remove(slangw);
                 slang.put(slangw,slangd);
+                try{
+                    saveSlang("slang.txt");
+                }catch(Exception E){}
             }
         });
         bottom_pn.add(editDef_btn);
@@ -398,6 +413,7 @@ class MyWindow extends JFrame {
                     String[] token = line.split("(`)");
                     // first index is slang
                     // second index is definition
+                    try{
                     if (token[1].contains("|")) {
                         String[] definitions = token[1].split("\\| ");
 
@@ -409,7 +425,7 @@ class MyWindow extends JFrame {
                     } else {
                         def.add(token[1]);
                         result.put(token[0], def);
-                    }
+                    }}catch(ArrayIndexOutOfBoundsException AIOOBE){result.put(token[0],null);}
                 }
             }
             return result;
@@ -426,13 +442,14 @@ class MyWindow extends JFrame {
         for (Map.Entry<String, ArrayList<String>> entry : slang.entrySet()) {
             String key = entry.getKey();
             ArrayList<String> value = entry.getValue();
-
+            if (value== null){
+                writer.write(key+"`\n");
+                continue;
+            }
             // build string for definition
             String output="";
             if (value.size()<=1){
-                for (String s : value){
-                    output+= s;
-                }
+                output+= value.get(0);
             }
             else{
                 for (String s: value) {
@@ -443,9 +460,7 @@ class MyWindow extends JFrame {
                     output += s + "| ";
                 }
             }
-
             writer.write(key+"`"+output+"\n");
-
         }
         writer.close();
         //JOptionPane.showMessageDialog(null,"Successfully Saved.","Alert",JOptionPane.WARNING_MESSAGE);
