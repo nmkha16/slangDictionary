@@ -1,4 +1,4 @@
-Đánh giá thang điểm các chức năng
+Đánh giá thang điểm các chức năng dựa theo tiến độ hoàn thành
 1. Chức năng tìm kiếm theo slang word. - 10
 
 2. Chức năng tìm kiếm theo definition, hiển thị ra tất cả các slang words mà trong
